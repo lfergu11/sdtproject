@@ -1,7 +1,7 @@
 # loading the libraries
 import streamlit as st
 import pandas as pd
-from plotly import express as px
+from plotly.express as px
 import altair as alt
 
 # load the data
