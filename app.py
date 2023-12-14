@@ -57,12 +57,14 @@ st.write("""
          """)
 
 # selectbox for manufacturer filter
-manufacturer_list = df.manufacturer.unique()
-manufacturer_select = st.selectbox('Select manufacturer:', manufacturer_list)
+manufacturer_list = sorted(df.manufacturer.unique())
+manufacturer_select = st.selectbox('Select manufacturer:', manufacturer_list,
+                                   manufacturer_list.index('Toyota'))
 
 # selectbox for vehicle type filter
-vehicle_type_list = df.type.unique()
-vehicle_select = st.selectbox('Select vehicle type:', vehicle_type_list)
+vehicle_type_list = sorted(df.type.unique())
+vehicle_select = st.selectbox('Select vehicle type:', vehicle_type_list,
+                              vehicle_type_list.index('SUV'))
 
 # slider for year selection
 min_year, max_year = int(df.model_year.min()),int(df.model_year.max())
@@ -82,43 +84,55 @@ st.dataframe(filtered_table)
 
 #-----------------------------
 
-# header for first histogram
+# header for first histogram with checkbox
 st.header('Distribution of vehicle types by the manufacturer')
+new_cars_type = st.checkbox('Display only new cars')
+type_df = df[['manufacturer','type','condition']]
+if new_cars_type:
+    type_df = type_df[type_df.condition=='new']
 # distribution of vehicle types by the manufacturer
-fig1 = px.histogram(df, x='manufacturer', color='type')
+fig1 = px.histogram(type_df, x='manufacturer', color='type')
 st.plotly_chart(fig1)
 
 # header for second histogram
-st.header('Distribution of vehicle condition by vehicle age')
+st.header('Distribution of vehicle condition by age group')
 # distribution of condition by age_category
 fig2 = px.histogram(df, x='age_category',
                     color='condition',
                     category_orders=dict(age_category=['>20','10-20','5-10','<5']))
 st.plotly_chart(fig2)
 
+# header for third histogram
+st.header('Distribution of transmissions by vehicle type')
+# distribution of transmission by vehicle type
+fig3 = px.histogram(df,x='type',color='transmission')
+st.plotly_chart(fig3)
+
 # header for third histogram with checkbox
 st.header('Price distribution between different manufacturers')
-new_cars = st.checkbox('Display only new cars')
-price_df = df
-if new_cars:
+new_cars_price = st.checkbox('Display only new cars',key=2)
+price_df = df[['manufacturer','price','condition']]
+if new_cars_price:
     price_df = price_df[price_df.condition=='new']
 # selectboxes for manufacturers
-manufacturer1 = st.selectbox('Select first manufacturer:', manufacturer_list)
-manufacturer2 = st.selectbox('Select second manufacturer:', manufacturer_list)
+manufacturer1 = st.selectbox('Select first manufacturer:', manufacturer_list, 
+                             manufacturer_list.index('Subaru'))
+manufacturer2 = st.selectbox('Select second manufacturer:', manufacturer_list,
+                             manufacturer_list.index('Jeep'))
 # filtering the dataframe
 manufacturers_data = price_df[(price_df.manufacturer==manufacturer1)|(price_df.manufacturer==manufacturer2)]
 # price distribution between manufacturers
-fig3 = px.histogram(manufacturers_data,
+fig4 = px.histogram(manufacturers_data,
                     x='price',
                     nbins=30,
                     color='manufacturer',
                     barmode='overlay')
-st.plotly_chart(fig3)
+st.plotly_chart(fig4)
 
 #---------------------------------
 
 # header for first scatterplot
-st.header('Price correlations')
+st.header('Price correlations by vehicle condition')
 st.write("""
          ##### Check how price is affected by odometer, vehicle age or days listed
          """)
@@ -126,9 +140,11 @@ st.write("""
 scatter_list = ['odometer','age','days_listed']
 scatter_select = st.selectbox('Price dependency on ', scatter_list)
 # scatterplot of price depending on scatter_select
-fig4 = px.scatter(df,x='price', y=scatter_select, color = 'condition',
+fig5 = px.scatter(df,x='price', y=scatter_select, color = 'condition',
                   hover_data=['model_year'])
-st.plotly_chart(fig4)
+st.plotly_chart(fig5)
+
+
 
 
 
