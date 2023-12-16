@@ -44,13 +44,29 @@ def age_category(x):
 # create new column
 df['age_category'] = df.age.apply(age_category) 
 
+# create filtered df that omits outliers from age & price distributions for scatterplot
+price_1q = df.price.quantile(0.25)
+price_3q = df.price.quantile(0.75)
+price_iqr = price_3q-price_1q
+price_lower = price_1q-1.5*price_iqr
+price_upper = price_3q+1.5*price_iqr
+price_outliers = df[(df['price']<price_lower) | (df['price']>price_upper)]
+scatterfilter_df = df[(df.index.isin(price_outliers.index)==False)]
+age_1q = df.age.quantile(0.25)
+age_3q = df.age.quantile(0.75)
+age_iqr = age_3q - age_1q
+age_lower = age_1q - 1.5*age_iqr
+age_upper = age_3q + 1.5*age_iqr
+age_outliers = df[(df['age']<age_lower) | (df['age']>age_upper)]
+scatterfilter_df = scatterfilter_df[(scatterfilter_df.index.isin(age_outliers.index)==False)]
+
 #------------------------------------
 
 # create streamlit app
 # title for web app
 st.title('Car Sales Advertisements')
 
-# header for data table
+# header for data table 
 st.header('Data viewer')
 st.write("""
          ##### Filter the data to see the ads by manufacturer, vehicle type & year
@@ -136,18 +152,14 @@ st.header('Price correlations by vehicle condition')
 st.write("""
          ##### Check how price is affected by odometer, vehicle age or days listed
          """)
+omit_outliers = st.checkbox('Omit Outliers')
+scatter_df = df
+if omit_outliers:
+    scatter_df = scatterfilter_df
 # selectbox for second variable
 scatter_list = ['odometer','age','days_listed']
 scatter_select = st.selectbox('Price dependency on ', scatter_list)
 # scatterplot of price depending on scatter_select
-fig5 = px.scatter(df,x='price', y=scatter_select, color = 'condition',
+fig5 = px.scatter(scatter_df,x='price', y=scatter_select, color = 'condition',
                   hover_data=['model_year'])
 st.plotly_chart(fig5)
-
-
-
-
-
-
-
-
